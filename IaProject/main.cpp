@@ -1,5 +1,3 @@
-//#pragma once
-
 #include <cmath>
 #include <random>
 #include <utility>
@@ -9,57 +7,73 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
-
+#include <vector>
+#include <cstring>
+#include <math.h>
 using namespace std;
 
-/*
-// To find a status with lower energy according to the given condition
-template<typename status, typename count, typename energy_function, typename temperature_function, typename next_function, typename generator>
-status simulated_annealing(status i_old, count c, const energy_function& ef, const temperature_function& tf, const next_function& nf, generator& g){
+int N_CITIES = 25;
 
-    auto   e_old  = ef(i_old);
-
-    status i_best = i_old;
-    auto   e_best = e_old;
-
-    std::uniform_real_distribution<decltype(e_old)> rf(0, 1);
-
-    for(; c > 0; --c){
-        status i_new = nf(i_old, g);
-        auto   e_new = ef(i_new);
-
-        if(e_new < e_best){
-            i_best =           i_new ;
-            e_best =           e_new ;
-        }
-
-        if( e_new < e_old || std::exp( (e_old - e_new) / tf(c) ) > rf(g) ){
-            i_old  = std::move(i_new);
-            e_old  = std::move(e_new);
-        }
-    }
-    return(i_best);
+double toRadians(double degrees){
+    return((degrees * M_1_PI)/180);
 }
-class tour{
+
+double haversine(City city1, City city2) {
+    double lat1 = city1.latitude;
+    double lat2 = city2.latitude;
+    double lon1 = city1.longitude;
+    double lon2 = city2.longitude;
+    double radiusOfEarth = 4182.44949; // miles, 6371km;
+    double dLat = toRadians(lat2 - lat1);
+    double dLon = toRadians(lon2 - lon1);
+    double a = sin(dLat / 2) * sin(dLat / 2) + cos(toRadians(lat1)) *
+                                                         cos(toRadians(lat2)) * sin(dLon / 2) *
+                                                         sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double distance = radiusOfEarth * c;
+
+    return distance;
 }
-void SA(int T, ){
-}
-*/
+
+struct City{
+    double latitude;
+    double longitude;
+    string name;
+    string type;
+};
 
 int main(){
-    string line;
-    ifstream infile;
-    infile.open("test.txt");
 
-    if(infile.is_open()){
-        while(getline(infile,line)){
-            cout << line << endl;
-            istringstream iss(line);
-            vector<string> tokens{istream_iterator<string>{iss},
-                                  istream_iterator<string>{}};
-        }
-        infile.close();
+    City cities[N_CITIES];
+    string line;
+    ifstream file("test.txt");
+    vector<string> text;
+    int index = 0;
+    vector<vector<double>> distances;
+
+    getline(file,line);
+    while((getline(file,line)) && (line != "\0")){
+        vector<string> result;
+        istringstream iss(line);
+        for(string s; iss >> s; )
+            result.push_back(s);
+
+        cities[index].name      = result[0];
+        cities[index].type      = result[1];
+        cities[index].longitude = stod(result[2]);
+        cities[index].latitude  = stod(result[3]);
+        index++;
     }
 
+    for (int i = 0; i < N_CITIES; ++i) {
+        for (int j = 0; j < N_CITIES; ++j) {
+            distances[i][j] = haversine(cities[i],cities[j]);
+        }
+    }
+
+    cout << distances[0][1] << endl;
+    //cout << "continuacion" << endl;
+    //getline(file,line);
+    //cout << line << endl;
     return 0;
 }
