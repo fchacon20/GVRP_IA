@@ -11,69 +11,10 @@
 #include <cstring>
 #include <math.h>
 #include <time.h>
+#include "haversine.cpp"
+#include "solutionUtilities.cpp"
+#include "city.h"
 using namespace std;
-
-//const int N_CITIES = 25;
-
-struct City{
-    double latitude;
-    double longitude;
-    string name;
-    string type;
-};
-
-double evaluation(vector<int> sol, vector<vector<double> > d){
-    double dist = 0;
-    int prev = 0;
-
-    for(vector<int>::iterator it = sol.begin() + 1; it != sol.end(); ++it) {
-        dist+= d[prev][*it];
-        prev = *it;
-    }
-    return(dist);
-}
-
-/*string initialGuess(City c[N_CITIES], double d[N_CITIES][N_CITIES], double p[4],
-                        double Q, double r, double TL, double v) {
-    int solution[N_CITIES];
-    for (int i = 0; i < N_CITIES; ++i)
-        solution[i] = i;
-    bool feasibleSolution = false;
-    int random, random2;
-    int prev = solution[0];
-    double totalDistance = 0;
-
-    srand ((unsigned int) time(NULL));
-
-    while (!feasibleSolution){
-        //cout << endl << "new iteration" << endl;
-        totalDistance = 0;
-        Q = p[0];
-        for (int i = 1; i < N_CITIES; ++i) {
-            Q -= d[solution[prev]][solution[i]];
-            //cout << "Q despues del viaje " << Q << endl;
-            if (Q < 0) {
-                //cout << "Inviable: Sin combustible" << endl;
-                random  = rand() % 25;
-                random2 = rand() % 25;
-                while(random == random2)
-                    random2 = rand() % 25;
-                swap(solution[random],solution[random2]);
-                feasibleSolution = false;
-                break;
-            }
-            feasibleSolution = true;
-            if (c[prev].type != "c")
-                Q = p[0];
-
-            totalDistance += d[solution[prev]][solution[i]];
-            prev = i;
-        }
-    }
-
-    cout << totalDistance << endl;
-    return("");
-}*/
 
 vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
                         double Q, double r, double TL, double v) {
@@ -135,11 +76,14 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
         Q = p[0];
 
         for (int i = 1; i < N_CITIES; ++i) {
+            if(solution[prev] == solution[i])
+                continue;
+
             goBack = d[solution[prev]][solution[0]];
             Q -= r*d[solution[prev]][solution[i]];
 
             if ((Q < goBack)&&(goBack != 9999)) {
-                cout << "Inviable: Sin combustible en ciudad " << c[solution[prev]].name << endl;
+                //cout << "Inviable: Sin combustible en ciudad " << c[solution[prev]].name << endl;
                 vectorSolution.push_back(solution[0]);
                 totalDistance += d[solution[prev]][solution[0]];
                 prev = solution[0];
@@ -159,7 +103,9 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
             time += d[solution[prev]][solution[i]]/v;
 
             if(time >= 60*TL){
-                cout << "Limite de tiempo alcanzado" << endl;
+                //cout << "Limite de tiempo alcanzado" << endl;
+                //printVector(vectorSolution);
+                //cout << solution[0] << endl;
                 vectorSolution.push_back(solution[0]);
                 totalDistance += d[solution[prev]][solution[0]];
                 prev = solution[0];
@@ -173,71 +119,20 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
             vectorSolution.push_back(solution[i]);
             prev = i;
         }
+        vectorSolution.push_back(0);
+
     }
 
-    cout << "Tiempo total: " << time << endl;
+    //cout << "Tiempo total: " << time << endl;
 
-    for(vector<int>::iterator it = vectorSolution.begin(); it != vectorSolution.end(); ++it) {
-        cout << *it << "-" ;
-    }
-    cout << endl;
-    cout << "Distancia de solucion inicial: " << totalDistance << endl;
+    printVector(vectorSolution);
+    cout << "Distancia de solucion inicial: " << totalDistance << endl << endl;
     return(vectorSolution);
-}
-
-bool isFeasible(vector<City> c, vector<int> sol, vector<vector<double> > d, double p[4]){
-    double Q = p[0];
-    double r = p[1];
-    double TL = p[2];
-    //double v = p[3];
-    int N_CITIES = (int)c.size();
-
-    int prev = sol[0];
-    int time = 0;
-
-    for (int i = 1; i < N_CITIES; ++i) {
-        Q -= r*d[sol[prev]][sol[i]];
-
-        if (Q < 0) {
-//            cout << "Inviable: Sin combustible en ciudad " << c[sol[prev]].name << endl;
-            return false;
-        }
-
-        if (c[prev].type != "c") {
-            Q = p[0];
-            time += 15;
-        }else
-            time += 30;
-
-        if(time >= 60*TL){
-//            cout << "Limite de tiempo alcanzado" << endl;
-            return false;
-        }
-        prev = i;
-    }
-
-    return true;
-}
-
-double toRadians(double degrees){
-    return((degrees * M_1_PI)/180);
-}
-
-double haversine(double lat1, double lat2, double lon1, double lon2) {
-    double radiusOfEarth = 4182.44949; // miles, 6371km;
-    double dLat = toRadians(lat2 - lat1);
-    double dLon = toRadians(lon2 - lon1);
-    double a = sin(dLat / 2) * sin(dLat / 2) + cos(toRadians(lat1)) *
-                                                         cos(toRadians(lat2)) * sin(dLon / 2) *
-                                                         sin(dLon / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    double distance = radiusOfEarth * c;
-
-    return distance;
 }
 
 int main(int argc, char** argv) {
 
+    clock_t begin = clock();
     string temp(argv[1]);
     int iterations = atoi(argv[2]);
     //City cities[N_CITIES];
@@ -268,6 +163,7 @@ int main(int argc, char** argv) {
     int N_CITIES = index;
     double aux;
 
+
     for (int i = 0; i < N_CITIES; ++i) {
         vector<double > row; //Empty row
         for (int j = 0; j < N_CITIES; ++j) {
@@ -287,15 +183,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    //Matriz de distancia
-    /*for (int i = 0; i < N_CITIES; ++i) {
-        for (int j = 0; j < N_CITIES; ++j) {
-            cout << distances[i][j] << " ";
-        }
-        cout << endl;
-    }*/
-    //cout << distances[0][0] << endl << endl;
-
     //Parametros
     double parameters[4];
     index = 0;
@@ -306,6 +193,7 @@ int main(int argc, char** argv) {
         size_t found2 = line.find("/",found1+1,1);
         if (found2!=std::string::npos)
             line = line.substr(found1+1,found2-found1-1);
+
         parameters[index] = stod(line);
         index++;
     }
@@ -319,16 +207,19 @@ int main(int argc, char** argv) {
     solution = initialGuess(cities, distances, parameters, Q, r, TL, v);
     double distPrev = evaluation(solution, distances);
     double newDist = 0;
+    vector<int> firstSolution = solution;
 
     srand ((unsigned int) time(NULL));
 
     vector<int> bestSolution = solution;
     double bestDistance = distPrev;
+    int bestIteration = 0;
     int temperature = 400;
     double dif = 0;
     double prob = 0;
     double ran = 0;
     int incremental = 0;
+    int otherRandom = 0;
 
     while(incremental < iterations) {
         for (unsigned int i = 1; i < solution.size() - 1; ++i) {
@@ -336,13 +227,15 @@ int main(int argc, char** argv) {
                 if (i != j) {
                     iter_swap(solution.begin() + i, solution.begin() + j);
 
-                    //Si no es factible, se disolve el swap
+                    //Si no es factible, se disuelve el swap
                     if (!isFeasible(cities, solution, distances, parameters)) {
                         iter_swap(solution.begin() + i, solution.begin() + j);
                     } else {
+                        //cout << "sol factible" << endl;
                         newDist = evaluation(solution, distances);
 
                         if (bestDistance > newDist) {
+                            bestIteration = incremental;
                             bestSolution = solution;
                             bestDistance = evaluation(bestSolution, distances);
                         }
@@ -372,12 +265,25 @@ int main(int argc, char** argv) {
             }
             if (incremental > iterations) break;
         }
+        //cout << "incremental: " << incremental << endl;
+        //printVector(solution);
+        //cout << "la distancia es: " << evaluation(solution, distances) << endl;
+        if (solution == firstSolution) {
+            otherRandom = (int) ((rand() % (solution.size() - 2)) + 2);
+            solution.push_back(0);
+            iter_swap(solution.begin() + otherRandom , solution.end() - 2);
+            firstSolution = solution;
+        }
     }
 
-    for(vector<int>::iterator it = bestSolution.begin(); it != bestSolution.end(); ++it) {
-        cout << *it << "-" ;
-    }
-    cout << endl << "la mejor solucion es: " << evaluation(bestSolution, distances) << endl;
+    cout << endl;
+    printVector(bestSolution);
+    cout << endl << "La mejor solucion es: " << evaluation(bestSolution, distances) << endl;
+
+    clock_t end = clock();
+    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    cout << "Tiempo de ejecucion: " << time_spent << endl;
+    cout << "Solucion encontrada en la iteracion: " << bestIteration << endl;
 
     return 0;
 }
