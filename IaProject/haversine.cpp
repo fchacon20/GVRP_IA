@@ -3,7 +3,7 @@
 
 //Funcion que transforma grados en radianes
 double toRadians(double degrees){
-    return((degrees * M_1_PI)/180);
+    return((degrees * M_PI)/180);
 }
 
 //Funcion que retorna la distancia entre dos nodos dadas sus latitudes y longitudes

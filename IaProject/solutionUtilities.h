@@ -3,7 +3,7 @@
 #include "city.h"
 
 double evaluation(std::vector<int> sol, std::vector<std::vector<double> > d);
-void printVector(std::vector<int> sol);
+void printVector(std::vector<int> sol, std::vector<City> c);
 bool isFeasible(std::vector<City> c, std::vector<int> sol, std::vector<std::vector<double> > d, double p[4]);
 
 #endif //IAPROJECT_SOLUTIONUTILITIES_H

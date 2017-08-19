@@ -55,24 +55,18 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
         }
         feasible = false;
         next = 0;
-
     }
 
     solution[N_CITIES-1] = 0;
-    for (int i = 0; i < N_CITIES-1; ++i)
-        cout << solution[i] << "-";
-    cout << solution[N_CITIES-1] << endl;
 
     bool feasibleSolution = false;
     int prev = solution[0];
-    double totalDistance = 0;
     vector<int> vectorSolution;
     vectorSolution.push_back(solution[0]);
     double goBack = 0;
     int time = 0;
 
     while (!feasibleSolution){
-        totalDistance = 0;
         Q = p[0];
 
         for (int i = 1; i < N_CITIES; ++i) {
@@ -82,10 +76,9 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
             goBack = d[solution[prev]][solution[0]];
             Q -= r*d[solution[prev]][solution[i]];
 
+            //Sin combustible
             if ((Q < goBack)&&(goBack != 9999)) {
-                //cout << "Inviable: Sin combustible en ciudad " << c[solution[prev]].name << endl;
                 vectorSolution.push_back(solution[0]);
-                totalDistance += d[solution[prev]][solution[0]];
                 prev = solution[0];
                 i--;
                 time = 0;
@@ -102,12 +95,9 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
 
             time += d[solution[prev]][solution[i]]/v;
 
+            //Tiempo excedido
             if(time >= 60*TL){
-                //cout << "Limite de tiempo alcanzado" << endl;
-                //printVector(vectorSolution);
-                //cout << solution[0] << endl;
                 vectorSolution.push_back(solution[0]);
-                totalDistance += d[solution[prev]][solution[0]];
                 prev = solution[0];
                 i--;
                 time = 0;
@@ -115,7 +105,6 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
                 continue;
             }
 
-            totalDistance += d[solution[prev]][solution[i]];
             vectorSolution.push_back(solution[i]);
             prev = i;
         }
@@ -123,10 +112,8 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
 
     }
 
-    //cout << "Tiempo total: " << time << endl;
-
-    printVector(vectorSolution);
-    cout << "Distancia de solucion inicial: " << totalDistance << endl << endl;
+    printVector(vectorSolution, c);
+    cout << "Distancia de solucion inicial: " << evaluation(vectorSolution, d) << endl << endl;
     return(vectorSolution);
 }
 
@@ -135,15 +122,12 @@ int main(int argc, char** argv) {
     clock_t begin = clock();
     string temp(argv[1]);
     int iterations = atoi(argv[2]);
-    //City cities[N_CITIES];
     vector<City> cities;
     string line;
     ifstream file(temp);
     vector<string> text;
     int index = 0;
     vector<int> solution;
-
-    //double distances[N_CITIES][N_CITIES];
     vector<vector<double> > distances;
 
     getline(file, line);
@@ -231,7 +215,6 @@ int main(int argc, char** argv) {
                     if (!isFeasible(cities, solution, distances, parameters)) {
                         iter_swap(solution.begin() + i, solution.begin() + j);
                     } else {
-                        //cout << "sol factible" << endl;
                         newDist = evaluation(solution, distances);
 
                         if (bestDistance > newDist) {
@@ -261,13 +244,10 @@ int main(int argc, char** argv) {
                 }
                 incremental++;
                 if (incremental > iterations) break;
-                //cout << newDist << endl;
             }
             if (incremental > iterations) break;
         }
-        //cout << "incremental: " << incremental << endl;
-        //printVector(solution);
-        //cout << "la distancia es: " << evaluation(solution, distances) << endl;
+
         if (solution == firstSolution) {
             otherRandom = (int) ((rand() % (solution.size() - 2)) + 2);
             solution.push_back(0);
@@ -277,13 +257,13 @@ int main(int argc, char** argv) {
     }
 
     cout << endl;
-    printVector(bestSolution);
+    printVector(bestSolution, cities);
     cout << endl << "La mejor solucion es: " << evaluation(bestSolution, distances) << endl;
 
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    cout << "Tiempo de ejecucion: " << time_spent << endl;
     cout << "Solucion encontrada en la iteracion: " << bestIteration << endl;
+    cout << "Tiempo de ejecucion: " << time_spent << endl;
 
     return 0;
 }
