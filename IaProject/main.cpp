@@ -21,13 +21,20 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
     int N_CITIES = (int)c.size();
     int solution[N_CITIES];
     double minimun = 0;
+    vector<int> f;
     vector<int> ready;
     int next = 0;
 
     bool feasible = false;
     ready.push_back(0);
+    f.push_back(0);
     solution[0] = 0;
     for (int i = 1; i < N_CITIES-1; ++i) {
+
+        //Vector de estaciones de recarga
+        if (c[i].type == "f" || c[i].type == "d")
+            f.push_back(i);
+
         vector<double> auxV;
         for (int j = 0; j < N_CITIES; ++j)
             auxV.push_back(d[solution[i-1]][j]);
@@ -36,10 +43,13 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
 
         while(!feasible) {
             minimun = auxV[next];
+
+            //Si la distancia es 9999, es la misma ciudad, por lo que se pasa a la siguiente
             if (minimun == 9999) {
                 solution[i] = solution[i-1];
                 break;
             }
+
             for (int j = 0; j < N_CITIES; ++j) {
                 if (d[solution[i - 1]][j] == minimun) {
                     if(find(ready.begin(),ready.end(),j) != ready.end()) {
@@ -63,40 +73,101 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
     int prev = solution[0];
     vector<int> vectorSolution;
     vectorSolution.push_back(solution[0]);
-    double goBack = 0;
+    double goBack = 0; //Combustible necesario para volver al almacen
     int time = 0;
+    double minF;
+    int fToGo = 0;
+    vector<int> Fs;
 
     while (!feasibleSolution){
         Q = p[0];
 
+        //Estacion de combustible mas cercana a cada nodo
+        for (int i = 0; i < N_CITIES; ++i) {
+            minF = 9999;
+            for (auto it = f.begin(); it != f.end(); ++it) {
+                if (d[solution[i]][solution[*it]] < minF) {
+                    minF = d[solution[i]][solution[*it]];
+                    Fs.push_back(*it);
+                }
+            }
+        }
+
         for (int i = 1; i < N_CITIES; ++i) {
-            if(solution[prev] == solution[i])
+
+            if (c[i].type != "c")
                 continue;
 
-            goBack = d[solution[prev]][solution[0]];
-            Q -= r*d[solution[prev]][solution[i]];
+            if (solution[prev] == solution[i])
+                continue;
+
+            goBack   = d[solution[prev]][solution[0]];
+            Q       -= d[solution[prev]][solution[i]] * r;
+            time    += d[solution[prev]][solution[i]] / v;
+
 
             //Sin combustible
-            if ((Q < goBack)&&(goBack != 9999)) {
-                vectorSolution.push_back(solution[0]);
-                prev = solution[0];
-                i--;
-                time = 0;
+            if (Q < 0) {
+                Q += d[solution[prev]][solution[i]] * r;
+
+                if (Q < r*goBack && (goBack != 9999)){
+                    while (Q < d[vectorSolution.back()][Fs[solution[i]]] * r) {
+                        prev = vectorSolution.back();
+                        vectorSolution.pop_back();
+
+                        Q += d[vectorSolution.back()][prev] * r;
+
+                        if (c[vectorSolution.back()].type == "d") {
+                            //cout << "limit" << endl;
+                            break;
+                        }
+
+                        i--;
+                    }
+
+                    vectorSolution.push_back(Fs[solution[i]]);
+                    prev = Fs[solution[i]];
+                    i--;
+                    time = 0;
+                    Q = p[0];
+                    continue;
+
+                }else {
+                    vectorSolution.push_back(fToGo);
+                    prev = fToGo;
+                    i--;
+                    Q = p[0];
+
+                    if (c[fToGo].type == "d")
+                        time = 0;
+
+                    continue;
+                }
+                
+            }
+
+            if (c[solution[i]].type != "c") {
                 Q = p[0];
-                continue;
+                time += 15;
+            } else {
+                time += 30;
             }
 
             feasibleSolution = true;
-            if (c[prev].type != "c") {
-                Q = p[0];
-                time += 15;
-            }else
-                time += 30;
-
-            time += d[solution[prev]][solution[i]]/v;
 
             //Tiempo excedido
             if(time >= 60*TL){
+                if (Q < r*goBack && (goBack != 9999)){
+                    cout << "sin gas" << endl;
+                    vectorSolution.pop_back();
+                    vectorSolution.push_back(solution[0]);
+                    prev = solution[0];
+                    i-=2;
+                    time = 0;
+                    Q = p[0];
+                    continue;
+                }
+                //cout << "tiempo excedido" << endl;
                 vectorSolution.push_back(solution[0]);
                 prev = solution[0];
                 i--;
@@ -111,7 +182,7 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
         vectorSolution.push_back(0);
 
     }
-
+    cout << endl;
     printVector(vectorSolution, c);
     cout << "Distancia de solucion inicial: " << evaluation(vectorSolution, d) << endl << endl;
     return(vectorSolution);
@@ -146,7 +217,6 @@ int main(int argc, char** argv) {
     }
     int N_CITIES = index;
     double aux;
-
 
     for (int i = 0; i < N_CITIES; ++i) {
         vector<double > row; //Empty row
@@ -193,6 +263,9 @@ int main(int argc, char** argv) {
     double newDist = 0;
     vector<int> firstSolution = solution;
 
+    cout << "solucion inicial" << endl;
+    cout << isFeasible(cities, solution, distances, parameters) << endl;
+
     srand ((unsigned int) time(NULL));
 
     vector<int> bestSolution = solution;
@@ -215,6 +288,7 @@ int main(int argc, char** argv) {
                     if (!isFeasible(cities, solution, distances, parameters)) {
                         iter_swap(solution.begin() + i, solution.begin() + j);
                     } else {
+                        //cout << "fact" << endl;
                         newDist = evaluation(solution, distances);
 
                         if (bestDistance > newDist) {
@@ -233,12 +307,16 @@ int main(int argc, char** argv) {
 
                             //Si la exponencial es menor que el numero aleatorio, no
                             //se deja pasar, es decir, se disuelve el swap
-                            if (ran > prob) {
+                            if (prob < ran) {
                                 iter_swap(solution.begin() + i, solution.begin() + j);
                             } else {
                                 distPrev = newDist;
-                                temperature -= 1;
+                                //printVector(solution, cities);
                             }
+                            temperature -= 1;
+                        }else{
+                            //printVector(solution, cities);
+                            iter_swap(solution.begin() + i, solution.begin() + j);
                         }
                     }
                 }
