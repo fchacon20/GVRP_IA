@@ -76,7 +76,6 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
     double goBack = 0; //Combustible necesario para volver al almacen
     int time = 0;
     double minF;
-    int fToGo = 0;
     vector<int> Fs;
 
     while (!feasibleSolution){
@@ -94,56 +93,47 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
         }
 
         for (int i = 1; i < N_CITIES; ++i) {
-
-            if (c[i].type != "c")
-                continue;
-
-            if (solution[prev] == solution[i])
+            if ((c[i].type != "c") || solution[prev] == solution[i])
                 continue;
 
             goBack   = d[solution[prev]][solution[0]];
             Q       -= d[solution[prev]][solution[i]] * r;
             time    += d[solution[prev]][solution[i]] / v;
 
-
             //Sin combustible
             if (Q < 0) {
                 Q += d[solution[prev]][solution[i]] * r;
 
                 if (Q < r*goBack && (goBack != 9999)){
+
+                    //Se devuelve la solución hasta encontrar una ruta posible
                     while (Q < d[vectorSolution.back()][Fs[solution[i]]] * r) {
                         prev = vectorSolution.back();
                         vectorSolution.pop_back();
-
                         Q += d[vectorSolution.back()][prev] * r;
-
-                        if (c[vectorSolution.back()].type == "d") {
-                            //cout << "limit" << endl;
-                            break;
-                        }
-
                         i--;
+
+                        if (c[vectorSolution.back()].type == "d")
+                            break;
                     }
 
+                    //Se agrega a la ruta la estación más cercana que es factible
                     vectorSolution.push_back(Fs[solution[i]]);
                     prev = Fs[solution[i]];
                     i--;
                     time = 0;
                     Q = p[0];
                     continue;
-
                 }else {
-                    vectorSolution.push_back(fToGo);
-                    prev = fToGo;
+                    //El vehículo se devuelve al almacén
+                    vectorSolution.push_back(0);
+                    prev = 0;
                     i--;
                     Q = p[0];
-
-                    if (c[fToGo].type == "d")
-                        time = 0;
-
+                    time = 0;
                     continue;
                 }
-                
+
             }
 
             if (c[solution[i]].type != "c") {
@@ -155,10 +145,9 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
 
             feasibleSolution = true;
 
-            //Tiempo excedido
+            //Límite de Tiempo
             if(time >= 60*TL){
                 if (Q < r*goBack && (goBack != 9999)){
-                    cout << "sin gas" << endl;
                     vectorSolution.pop_back();
                     vectorSolution.push_back(solution[0]);
                     prev = solution[0];
@@ -166,25 +155,23 @@ vector<int> initialGuess(vector<City> c, vector<vector<double> > d, double p[4],
                     time = 0;
                     Q = p[0];
                     continue;
+                } else {
+                    vectorSolution.push_back(solution[0]);
+                    prev = solution[0];
+                    i--;
+                    time = 0;
+                    Q = p[0];
+                    continue;
                 }
-                //cout << "tiempo excedido" << endl;
-                vectorSolution.push_back(solution[0]);
-                prev = solution[0];
-                i--;
-                time = 0;
-                Q = p[0];
-                continue;
             }
-
             vectorSolution.push_back(solution[i]);
             prev = i;
         }
         vectorSolution.push_back(0);
-
     }
-    cout << endl;
+    cout << "Solución inicial" << endl;
     printVector(vectorSolution, c);
-    cout << "Distancia de solucion inicial: " << evaluation(vectorSolution, d) << endl << endl;
+    cout << "Distancia de solución inicial: " << evaluation(vectorSolution, d) << endl;
     return(vectorSolution);
 }
 
@@ -263,21 +250,19 @@ int main(int argc, char** argv) {
     double newDist = 0;
     vector<int> firstSolution = solution;
 
-    cout << "solucion inicial" << endl;
-    cout << isFeasible(cities, solution, distances, parameters) << endl;
-
     srand ((unsigned int) time(NULL));
 
     vector<int> bestSolution = solution;
     double bestDistance = distPrev;
     int bestIteration = 0;
-    int temperature = 400;
+    int temperature = 100;
     double dif = 0;
     double prob = 0;
     double ran = 0;
     int incremental = 0;
     int otherRandom = 0;
 
+    //Loop de iteraciones
     while(incremental < iterations) {
         for (unsigned int i = 1; i < solution.size() - 1; ++i) {
             for (unsigned int j = 1; j < solution.size() - 1; ++j) {
@@ -288,7 +273,6 @@ int main(int argc, char** argv) {
                     if (!isFeasible(cities, solution, distances, parameters)) {
                         iter_swap(solution.begin() + i, solution.begin() + j);
                     } else {
-                        //cout << "fact" << endl;
                         newDist = evaluation(solution, distances);
 
                         if (bestDistance > newDist) {
@@ -311,11 +295,9 @@ int main(int argc, char** argv) {
                                 iter_swap(solution.begin() + i, solution.begin() + j);
                             } else {
                                 distPrev = newDist;
-                                //printVector(solution, cities);
                             }
                             temperature -= 1;
                         }else{
-                            //printVector(solution, cities);
                             iter_swap(solution.begin() + i, solution.begin() + j);
                         }
                     }
@@ -334,14 +316,14 @@ int main(int argc, char** argv) {
         }
     }
 
-    cout << endl;
+    cout << endl << "Solución Final" << endl;
     printVector(bestSolution, cities);
-    cout << endl << "La mejor solucion es: " << evaluation(bestSolution, distances) << endl;
+    cout << endl << "La distancia de la mejor solucion es: " << evaluation(bestSolution, distances) << endl;
 
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
     cout << "Solucion encontrada en la iteracion: " << bestIteration << endl;
-    cout << "Tiempo de ejecucion: " << time_spent << endl;
+    cout << "Tiempo de ejecucion: " << time_spent << " segundos" << endl;
 
     return 0;
 }

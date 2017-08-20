@@ -4,7 +4,7 @@
 #include "city.h"
 using namespace std;
 
-//Evaluacion en la funcion objetivo de la solucion propuesta
+//Evaluación en la función objetivo de la solución propuesta
 double evaluation(vector<int> sol, vector<vector<double> > d){
     double dist = 0;
     int prev = 0;
@@ -15,14 +15,14 @@ double evaluation(vector<int> sol, vector<vector<double> > d){
     return(dist);
 }
 
-//Imprimir la solucion de manera legible
+//Imprimir la solución de manera legible
 void printVector(vector<int> sol, vector<City> c){
     for(vector<int>::iterator it = sol.begin(); it != sol.end() - 2; ++it)
         cout << c[*it].name << "-";
     cout << c[*(sol.end()-1)].name << endl;
 }
 
-//Comprueba si la solucion es factible, es decir, si se satisfacen las restricciones
+//Comprueba si la solución es factible, es decir, si se satisfacen las restricciones
 //de combustible y tiempo
 bool isFeasible(vector<City> c, vector<int> sol, vector<vector<double> > d, double p[4]){
     double Q = p[0];
@@ -42,9 +42,7 @@ bool isFeasible(vector<City> c, vector<int> sol, vector<vector<double> > d, doub
         Q -= r * d[sol[prev]][sol[i]];
         time += d[sol[prev]][sol[i]]/v;
 
-        //cout << c[sol[i]].name  << ": " << Q << endl;
         if (Q < 0) {
-            //cout << "no comb " << Q << " en " << c[sol[i]].name << endl;
             return false;
         }
 
@@ -59,7 +57,6 @@ bool isFeasible(vector<City> c, vector<int> sol, vector<vector<double> > d, doub
         }
 
         if(time >= 60*TL) {
-            //cout << "falta time: " << time << " en " << c[sol[prev]].name << endl;
             return false;
         }
 
