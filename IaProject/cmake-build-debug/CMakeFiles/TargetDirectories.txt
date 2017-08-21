@@ -1,3 +1,0 @@
-/home/fchacon/git/GVRP_IA/IaProject/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/fchacon/git/GVRP_IA/IaProject/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/fchacon/git/GVRP_IA/IaProject/cmake-build-debug/CMakeFiles/IaProject.dir

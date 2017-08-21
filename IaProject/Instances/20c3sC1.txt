@@ -31,5 +31,3 @@ TL TourLength /11/
 v average Velocity /40/
 m numVeh /3/
 
-
-  

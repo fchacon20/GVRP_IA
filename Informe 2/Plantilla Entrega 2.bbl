@@ -1,0 +1,51 @@
+\begin{thebibliography}{1}
+
+\bibitem{CVRP-TW}
+Miguel~Angel Figliozzi.
+\newblock An iterative routing construction and improvement algorithm for the
+  vehicule routing problem with soft time windows.
+\newblock {\em Transportation Research Part C: Emerging Technologies},
+  18:668--679, 2010.
+
+\bibitem{RVRP}
+Ryan Conrad{,}~Miguel Figliozzi.
+\newblock The recharging vehicule routing problem.
+\newblock {\em Proceedings of the 2011 Industrial Engineering Research
+  Conference}, pages 1--8, 2011.
+
+\bibitem{E-VRPTW}
+Michael Schneider{,} Andreas Stenger{,}~Dominik Goeke.
+\newblock The electric vehicule routing problem with time windows and
+  recharging stations.
+\newblock {\em Chair of Business Information Systems and Operations Research
+  (BISOR)}, pages 500--520, 2012.
+
+\bibitem{Survey}
+Lin{,} C.{,} Choy{,} K.L.{,} Ho{,} G.T.S.{,} Chung{,} S.H.{,}~Lam{,} H.Y.
+\newblock Survey of green vehicle routing problem: past and future trends.
+\newblock {\em Expert Syst. Appl.}, 41:1118--1338, 2014.
+
+\bibitem{G-VRP}
+Sevgi Erdogan{,}~Elise Miller-Hooks.
+\newblock A green vehicule routing problem.
+\newblock {\em Transportation Research Part E}, pages 100--114, 2012.
+
+\bibitem{AFVs}
+US~DOE{,}~Department of~Energy.
+\newblock The alternative fuels and advanced vehicules data center (afdc),
+  2009.
+\newblock \url{http://www.afdc.energy.gov/locator/stations/} (Consultado:
+  15-05-2017).
+
+\bibitem{VRP}
+G.B. Dantzig{,}~J.H. Ramser.
+\newblock The truck dispatching problem.
+\newblock {\em Management Science}, 6:80--91, 1959.
+
+\bibitem{GVRP2}
+Ángel Felipe{,} M. Teresa Ortuño{,} Giovanni Righini{,} Gregorio~Tirado.
+\newblock A heuristic approach for the green vehicle routing problem with
+  multiple technologies and partial recharges.
+\newblock {\em Transportation Research Part E}, 71:111--128, 2014.
+
+\end{thebibliography}
