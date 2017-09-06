@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
     vector<int> bestSolution = solution;
     double bestDistance = distPrev;
     int bestIteration = 0;
-    int temperature = 100;
+    int temperature = 400;
     double dif = 0;
     double prob = 0;
     double ran = 0;
